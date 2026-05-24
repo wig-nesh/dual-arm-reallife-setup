@@ -1,1 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Conda
 .env
+.venv
+conda-meta/
+*.conda
+
+# VSCode
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Outputs
+outputs/
+logs/
+
+# Dataset
+inputs/
+
+# System
+.DS_Store
+Thumbs.db
+
+# PyTorch
+*.pt
+*.pth
+
+# Temporary
+temp/
+cache/
+
+# API Keys
+.env.local

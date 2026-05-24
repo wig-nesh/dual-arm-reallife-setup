@@ -1,0 +1,15 @@
+name: bimanual
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - opencv
+  - pillow
+  - matplotlib
+  - scipy
+  - pip
+
+  - pip:
+      - openai
+      - tqdm
