@@ -14,7 +14,12 @@ class SAMClient:
     def __init__(self, server_url: str, timeout: float = 10.0):
         self.server_url = server_url.rstrip("/")
         self.timeout = timeout
-        self.endpoint = f"{self.server_url}/sam_predict"
+        self.endpoint_candidates = [
+            f"{self.server_url}/sam_predict",
+            f"{self.server_url}/sam/predict",
+            f"{self.server_url}/sam/sam_predict",
+            f"{self.server_url}/predict",
+        ]
 
     def _encode_image(self, image: np.ndarray) -> bytes:
         """Encodes a BGR image to JPEG bytes."""
@@ -35,14 +40,24 @@ class SAMClient:
         """Sends a multipart/form-data POST request to the server."""
         files = {"image": ("image.jpg", image_bytes, "image/jpeg")}
 
-        try:
-            response = requests.post(
-                self.endpoint, files=files, data=data, timeout=self.timeout
-            )
-            response.raise_for_status()
-            return self._decode_mask(response.content)
-        except requests.exceptions.RequestException as e:
-            raise RuntimeError(f"SAM server request failed: {e}")
+        last_error = None
+        for endpoint in self.endpoint_candidates:
+            try:
+                response = requests.post(
+                    endpoint, files=files, data=data, timeout=self.timeout
+                )
+                if response.status_code == 404:
+                    last_error = f"404 Client Error: NOT FOUND for url: {endpoint}"
+                    continue
+                response.raise_for_status()
+                return self._decode_mask(response.content)
+            except requests.exceptions.HTTPError as e:
+                raise RuntimeError(f"SAM server request failed: {e}")
+            except requests.exceptions.RequestException as e:
+                last_error = str(e)
+                continue
+
+        raise RuntimeError(f"SAM server request failed: {last_error}")
 
     def predict_from_point(
         self, image: np.ndarray, point_xy: Tuple[int, int]
