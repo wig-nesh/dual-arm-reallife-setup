@@ -5,3 +5,4 @@ openai
 matplotlib
 scipy
 tqdm
+google-generativeai

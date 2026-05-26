@@ -13,3 +13,4 @@ dependencies:
   - pip:
       - openai
       - tqdm
+      - google-generativeai

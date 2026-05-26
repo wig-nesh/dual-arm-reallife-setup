@@ -15,5 +15,7 @@ run_data/
 *.npy
 *.png
 *.json
+!bimanual/data/
+!bimanual/data/**
 !pyproject.toml
 !uv.lock

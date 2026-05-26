@@ -17,11 +17,11 @@ conda-meta/
 .ipynb_checkpoints/
 
 # Outputs
-outputs/
+#outputs/
 logs/
 
 # Dataset
-inputs/
+#inputs/
 
 # System
 .DS_Store

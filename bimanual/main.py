@@ -109,7 +109,7 @@ from export.exporter import (
 # ============================================================
 
 client = create_groq_client(
-    os.getenv("GROQ_API_KEY")
+    os.getenv("GEMINI_API_KEY")
 )
 
 # ============================================================

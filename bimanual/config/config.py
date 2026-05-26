@@ -42,8 +42,7 @@ BOX_SIZE = 40
 
 USE_REAL_VLM = False
 
-VLM_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
-
+VLM_MODEL = "gemini-3-pro-preview"
 MAX_RETRIES = 5
 
 TEMPERATURE = 0.0

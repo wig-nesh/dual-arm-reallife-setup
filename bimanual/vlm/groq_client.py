@@ -1,14 +1,8 @@
 import time
 import json
-import base64
 import re
-
-from openai import OpenAI
-
-from vlm.parser import (
-    clean_response,
-    parse_json_response
-)
+from PIL import Image
+from google import genai
 
 # ============================================================
 # CREATE CLIENT
@@ -16,29 +10,72 @@ from vlm.parser import (
 
 def create_groq_client(api_key):
 
-    client = OpenAI(
-
-        api_key=api_key,
-
-        base_url="https://api.groq.com/openai/v1"
+    client = genai.Client(
+        api_key=api_key
     )
 
     return client
 
 # ============================================================
-# ENCODE IMAGE
+# CLEAN RESPONSE
 # ============================================================
 
-def encode_image_base64(image_path):
+def clean_response(response_text):
 
-    with open(image_path, "rb") as f:
+    if response_text is None:
 
-        image_base64 = base64.b64encode(
-            f.read()
-        ).decode("utf-8")
+        raise Exception(
+            "Empty VLM response"
+        )
 
-    return image_base64
+    response_text = response_text.strip()
 
+    response_text = response_text.replace(
+        "```json",
+        ""
+    )
+
+    response_text = response_text.replace(
+        "```",
+        ""
+    )
+
+    json_match = re.search(
+        r'\{[\s\S]*\}',
+        response_text
+    )
+
+    if json_match is None:
+
+        raise Exception(
+            "No JSON found in response"
+        )
+
+    response_text = json_match.group(0)
+
+    return response_text
+
+# ============================================================
+# PARSE JSON
+# ============================================================
+
+def parse_json_response(response_text):
+
+    try:
+
+        result = json.loads(
+            response_text
+        )
+
+    except Exception:
+
+        raise Exception(
+
+            f"Failed to parse JSON:\n"
+            f"{response_text}"
+        )
+
+    return result
 
 # ============================================================
 # QUERY VLM
@@ -61,10 +98,6 @@ def query_vlm(
     max_retries=5
 ):
 
-    image_base64 = encode_image_base64(
-        image_path
-    )
-
     success = False
 
     result = None
@@ -78,53 +111,26 @@ def query_vlm(
                 f"{attempt+1}/{max_retries}"
             )
 
-            response = client.chat.completions.create(
+            # ------------------------------------------------
+            # Gemini request
+            # ------------------------------------------------
+
+            image = Image.open(
+                image_path
+            )
+
+            response = client.models.generate_content(
 
                 model=model,
 
-                messages=[
+                contents=[
 
-                    {
-
-                        "role": "user",
-
-                        "content": [
-
-                            {
-                                "type": "text",
-
-                                "text": prompt
-                            },
-
-                            {
-
-                                "type": "image_url",
-
-                                "image_url": {
-
-                                    "url":
-                                    (
-                                        "data:image/png;base64,"
-                                        + image_base64
-                                    )
-                                }
-                            }
-                        ]
-                    }
-                ],
-
-                temperature=temperature,
-
-                max_tokens=max_tokens
+                    prompt,
+                    image
+                ]
             )
 
-            response_text = (
-
-                response
-                .choices[0]
-                .message
-                .content
-            )
+            response_text = response.text
 
             print("\n===== RAW RESPONSE =====\n")
 
@@ -143,7 +149,7 @@ def query_vlm(
             print(response_text)
 
             # ------------------------------------------------
-            # Parse JSON
+            # Parse
             # ------------------------------------------------
 
             result = parse_json_response(
@@ -178,3 +184,39 @@ def query_vlm(
         )
 
     return result
+
+# ============================================================
+# VALIDATE GRASP RESPONSE
+# ============================================================
+
+def validate_grasp_response(result):
+
+    if "grasps" not in result:
+
+        raise Exception(
+            "Missing 'grasps' field"
+        )
+
+    grasps = result["grasps"]
+
+    if not isinstance(grasps, list):
+
+        raise Exception(
+            "'grasps' must be a list"
+        )
+
+    for grasp in grasps:
+
+        if "left_cell" not in grasp:
+
+            raise Exception(
+                "Missing left_cell"
+            )
+
+        if "right_cell" not in grasp:
+
+            raise Exception(
+                "Missing right_cell"
+            )
+
+    return True
