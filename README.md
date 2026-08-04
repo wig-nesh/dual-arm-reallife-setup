@@ -2,6 +2,14 @@
 
 This repository contains modular controllers and test scripts for a real-world robotic pipeline involving dual xArm7s, Dynamixel Grippers, RealSense RGB-D cameras, and remote SAM segmentation.
 
+<table align="center">
+  <tr>
+    <td align="center"><video src="videos/bucket.webm" autoplay loop muted playsinline width="100%"></video><br><sub>Bucket</sub></td>
+    <td align="center"><video src="videos/chair.webm" autoplay loop muted playsinline width="100%"></video><br><sub>Chair</sub></td>
+    <td align="center"><video src="videos/tray.webm" autoplay loop muted playsinline width="100%"></video><br><sub>Tray</sub></td>
+  </tr>
+</table>
+
 ## Project Structure
 
 - **`xarm/`**: xArm7 control and simulation.
